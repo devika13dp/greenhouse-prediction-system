@@ -1,0 +1,37 @@
+sudo apt update
+sudo apt install python3 python3-pip -y
+pip3 install mlflow scikit-learn pandas
+mlflow --version
+mkdir mlflow_lab
+cd mlflow_lab
+
+nano train.py
+import mlflow
+import mlflow.sklearn
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+X, y = load_iris(return_X_y=True)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+C_value = 1.0 # Change this to 0.01 for the second run
+with mlflow.start_run():
+    model = LogisticRegression(C=C_value, max_iter=200)
+    model.fit(X_train, y_train)
+    accuracy = accuracy_score(y_test, model.predict(X_test))
+    
+    mlflow.log_param("C", C_value)
+    mlflow.log_metric("accuracy", accuracy)
+    mlflow.sklearn.log_model(model, "model")
+    print("Accuracy:", accuracy)
+
+pip3 install mlflow scikit-learn pandas
+python3 train.py
+
+nano train.py
+# (Edit train.py C_value to 0.01)
+
+python3 train.py
+mlflow ui # Open http://127.0.0.1:5000
