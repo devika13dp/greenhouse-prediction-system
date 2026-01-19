@@ -1,0 +1,53 @@
+mkdir student-portal
+cd student-portal
+nano index.html
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Event Registration</title>
+</head>
+<body>
+<h1>Event Registration</h1>
+<form id="regForm" action="#" method="post">
+<label>Name: <input type="text" name="name" required></label><br>
+<label>Email: <input type="email" name="email" required></label><br>
+<label>Phone: <input type="tel" name="phone" required></label><br>
+<button type="submit">Register</button>
+</form>
+</body>
+</html>
+
+git init
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+
+git add index.html 
+git commit -m "Initial commit: add registration form"
+
+go to github createa repo student-poral...dont add aany readme or license
+git remote add origin url
+git remote -v
+
+git branch -M main
+git push -u origin main
+
+git log --oneline
+git branch
+git status
+
+git checkout -b update-form
+git branch
+nano index.html
+add this line
+<label>Department: <input type="text" name="department" required></label><br>
+
+git add index.html
+git commit -m "added dept"
+git checkout main
+git merge update-form
+git push origin main
+git branch -d update-form
+git show HEAD:index.html
