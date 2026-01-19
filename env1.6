@@ -1,0 +1,65 @@
+##6
+# Check versions
+docker --version
+docker compose version
+
+# Installation (if needed)
+sudo apt update
+sudo apt install docker.io docker-compose-plugin
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# Create project directory
+mkdir multi_container_app
+cd multi_container_app
+nano app.py
+
+import redis
+import time
+time.sleep(5) # wait for redis to start
+r = redis.Redis(host='redis', port=6379, decode_responses=True)
+r.set('message', 'Hello from App Container')
+print("Stored message in Redis:", r.get('message'))
+
+nano requirements.txt
+redis
+
+nano Dockerfile
+FROM python:3.10-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY app.py .
+CMD ["python", "app.py"]
+
+nano docker-compose.yml
+version: "3.8"
+services:
+  app:
+    build: .
+    depends_on:
+      - redis
+    networks:
+      - app_network
+  redis:
+    image: redis:latest
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+
+networks:
+  app_network:
+
+volumes:
+  redis_data:
+
+# Run application
+docker compose up --build
+
+# Verify containers and volumes
+docker ps
+docker volume ls
+
+# Stop application
+docker compose down
