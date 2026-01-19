@@ -1,0 +1,41 @@
+sudo apt update
+sudo apt install git python3 python3-pip -y
+pip3 install dvc
+
+mkdir dvc_lab
+cd dvc_lab
+git init
+dvc init
+
+mkdir data
+mkdir data/raw data/processed
+
+# Create raw data
+nano data/raw/data.csv
+# Content:
+# id, name, age
+# 1, Alice, 23
+# 2, Bob,
+# 3, Charlie, 25
+
+# Track raw data
+dvc add data/raw/data.csv
+git add data/raw/data.csv.dvc .gitignore
+git commit -m "Add raw dataset with DVC tracking"
+
+# Create cleaning script (clean_data.py)
+# import pandas as pd
+# df = pd.read_csv("data/raw/data.csv")
+# df = df.dropna()
+# df.to_csv("data/processed/cleaned_data.csv", index=False)
+
+# Run DVC pipeline
+dvc run -n clean_data \
+-d clean_data.py \
+-d data/raw/data.csv \
+-o data/processed/cleaned_data.csv \
+python3 clean_data.py
+
+# Verify and Reproduce
+dvc repro
+
