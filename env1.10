@@ -1,0 +1,70 @@
+sudo apt update
+sudo apt install python3 python3-pip docker.io -y
+pip3 install fastapi uvicorn scikit-learn pydantic pytest
+sudo systemctl start docker
+sudo systemctl enable docker
+mkdir fastapi_ml
+cd fastapi_ml
+
+nano main.py
+from fastapi import FastAPI
+from pydantic import BaseModel
+from sklearn.datasets import load_iris
+from sklearn.linear_model import LogisticRegression
+
+X, y = load_iris(return_X_y=True)
+model = LogisticRegression(max_iter=200).fit(X, y)
+
+app = FastAPI()
+
+class IrisInput(BaseModel):
+    sepal_length: float
+    sepal_width: float
+    petal_length: float
+    petal_width: float
+
+@app.post("/predict")
+def predict(data: IrisInput):
+    features = [[data.sepal_length, data.sepal_width, data.petal_length, data.petal_width]]
+    prediction = model.predict(features)
+    return {"prediction": int(prediction[0])}
+
+uvicorn main:app --reload
+test in browser   http://127.0.0.1:8000/docs
+
+nano test_api.py
+from fastapi.testclient import TestClient 
+from main import app 
+
+client = TestClient(app) 
+
+def test_predict(): 
+    response = client.post("/predict", json={ 
+        "sepal_length": 5.1, 
+        "sepal_width": 3.5, 
+        "petal_length": 1.4, 
+        "petal_width": 0.2 
+    })
+    assert response.status_code == 200 
+    assert "prediction" in response.json() 
+
+nano Dockerfile
+FROM python:3.10-slim 
+WORKDIR /app 
+COPY main.py . 
+RUN pip install fastapi uvicorn scikit-learn pydantic 
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"] 
+
+sudo docker build -t fastapi-ml . 
+sudo docker run -p 8000:8000 fastapi-ml 
+
+curl -X POST "http://localhost:8000/predict" \
+-H "Content-Type: application/json" \
+-d '{
+  "sepal_length": 6.0,
+  "sepal_width": 3.0,
+  "petal_length": 4.8,
+  "petal_width": 1.8
+}'
+
+# Test via Swagger UI at http://localhost:8000/docs 
